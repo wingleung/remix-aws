@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json.schemastore.org/tsconfig",
+  "display": "Default",
+  "compilerOptions": {
+    "lib": [
+      "ES2022",
+      "DOM.Iterable"
+    ],
+    "module": "commonjs",
+    "target": "ES2022",
+    "typeRoots": ["./node_modules/@types"],
+    "types": [
+      "@cloudflare/workers-types",
+      "jest"
+    ],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": true,
+    "moduleResolution": "node"
+  }
+}
