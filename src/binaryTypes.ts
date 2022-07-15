@@ -1,3 +1,5 @@
+// TODO: check if we can replace this with https://www.npmjs.com/package/mime-types
+
 /**
  * Common binary MIME types
  * @see https://github.com/architect/functions/blob/45254fc1936a1794c185aac07e9889b241a2e5c6/src/http/helpers/binary-types.js
