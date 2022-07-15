@@ -24,10 +24,10 @@ import {
   createRemixRequest as createRemixRequestV2,
   sendRemixResponse as sendRemixResponseV2 } from './api/v2'
 
-// TODO add support for ALB
-export enum APIGatewayVersion {
-  v1 = 'v1',
-  v2 = 'v2',
+export enum AWSProxy {
+  APIGatewayV1 = 'APIGatewayV1',
+  APIGatewayV2 = 'APIGatewayV2',
+  ALB = 'ALB'
 }
 
 /**
@@ -51,25 +51,25 @@ export function createRequestHandler({
   build,
   getLoadContext,
   mode = process.env.NODE_ENV,
-  apiGatewayVersion = APIGatewayVersion.v2
+  awsProxy = AWSProxy.APIGatewayV2
 }: {
   build: ServerBuild;
   getLoadContext?: GetLoadContextFunction;
   mode?: string;
-  apiGatewayVersion?: APIGatewayVersion;
+  awsProxy?: AWSProxy;
 }): RequestHandler {
   const handleRequest = createRemixRequestHandler(build, mode)
 
   return async (event: APIGatewayProxyEvent | APIGatewayProxyEventV2 /*, context*/) => {
-    const request = apiGatewayVersion === APIGatewayVersion.v1
-      ? createRemixRequest(event as APIGatewayProxyEvent)
-      : createRemixRequestV2(event as APIGatewayProxyEventV2)
+    const request = awsProxy === AWSProxy.APIGatewayV2
+      ? createRemixRequestV2(event as APIGatewayProxyEventV2)
+      : createRemixRequest(event as APIGatewayProxyEvent & ALBEvent)
     const loadContext = getLoadContext?.(event)
 
-    const response = (await handleRequest(request, loadContext)) as NodeResponse
+    const response = (await handleRequest(request as unknown as Request, loadContext)) as unknown as NodeResponse
 
-    return apiGatewayVersion === APIGatewayVersion.v1
-      ? sendRemixResponse(response)
-      : sendRemixResponseV2(response)
+    return awsProxy === AWSProxy.APIGatewayV2
+      ? sendRemixResponseV2(response)
+      : sendRemixResponse(response)
   }
 }

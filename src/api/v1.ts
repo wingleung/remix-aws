@@ -1,4 +1,7 @@
 import type {
+  ALBEvent,
+  ALBEventHeaders,
+  ALBResult,
   APIGatewayProxyEvent,
   APIGatewayProxyEventHeaders,
   APIGatewayProxyResult
@@ -16,7 +19,7 @@ import { URLSearchParams } from 'url'
 
 import { isBinaryType } from '../binaryTypes'
 
-export function createRemixRequest(event: APIGatewayProxyEvent): NodeRequest {
+export function createRemixRequest(event: APIGatewayProxyEvent & ALBEvent): NodeRequest {
   const host = event.headers['x-forwarded-host'] || event.headers.Host
   const scheme = process.env.ARC_SANDBOX ? 'http' : 'https'
 
@@ -41,7 +44,7 @@ export function createRemixRequest(event: APIGatewayProxyEvent): NodeRequest {
 }
 
 export function createRemixHeaders(
-  requestHeaders: APIGatewayProxyEventHeaders
+  requestHeaders: APIGatewayProxyEventHeaders & ALBEventHeaders
 ): NodeHeaders {
   const headers = new NodeHeaders()
 
@@ -56,7 +59,7 @@ export function createRemixHeaders(
 
 export async function sendRemixResponse(
   nodeResponse: NodeResponse
-): Promise<APIGatewayProxyResult> {
+): Promise<APIGatewayProxyResult & ALBResult> {
   const contentType = nodeResponse.headers.get('Content-Type')
   const isBase64Encoded = isBinaryType(contentType)
   let body: string | undefined
