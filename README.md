@@ -4,6 +4,9 @@
   <p><strong>AWS adapters for Remix</strong></p>
 </div>
 
+> **Warning**
+> Remix AWS is currently released as a release candidate (RC) and is intended for feedback and testing purposes only.
+
 ## 🚀 support
 
 - API gateway v1
@@ -11,6 +14,10 @@
 - Application load balancer
 
 ## Getting started
+
+```shell
+npm install --save remix-aws
+```
 
 ```javascript
 // server.js
