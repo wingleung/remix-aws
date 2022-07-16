@@ -8,11 +8,6 @@
     ],
     "module": "commonjs",
     "target": "ES2022",
-    "typeRoots": ["./node_modules/@types"],
-    "types": [
-      "@cloudflare/workers-types",
-      "jest"
-    ],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,

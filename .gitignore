@@ -326,6 +326,7 @@ $RECYCLE.BIN/
 *.lnk
 
 # Project
+tsup.config.js
 src/**/*.js
 src/**/*.d.ts
 src/**/*.d.ts.map

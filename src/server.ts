@@ -66,7 +66,7 @@ export function createRequestHandler({
       : createRemixRequest(event as APIGatewayProxyEvent & ALBEvent)
     const loadContext = getLoadContext?.(event)
 
-    const response = (await handleRequest(request as unknown as Request, loadContext)) as unknown as NodeResponse
+    const response = (await handleRequest(request, loadContext)) as NodeResponse
 
     return awsProxy === AWSProxy.APIGatewayV2
       ? sendRemixResponseV2(response)
