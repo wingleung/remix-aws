@@ -1,7 +1,7 @@
 import type {
+  APIGatewayProxyEvent,
   APIGatewayProxyEventHeaders,
-  APIGatewayProxyEventV2,
-  APIGatewayProxyStructuredResultV2
+  APIGatewayProxyResult
 } from 'aws-lambda'
 import type {
   Response as NodeResponse,
@@ -12,33 +12,38 @@ import {
   readableStreamToString,
   Request as NodeRequest
 } from '@remix-run/node'
+import { URLSearchParams } from 'url'
 
 import { isBinaryType } from '../binaryTypes'
 
-export function createRemixRequest(event: APIGatewayProxyEventV2): NodeRequest {
-  const host = event.headers['x-forwarded-host'] || event.headers.host
-  const search = event.rawQueryString.length ? `?${event.rawQueryString}` : ''
-  const scheme = process.env.ARC_SANDBOX ? 'http' : 'https'
-  const url = new URL(event.rawPath + search, `${scheme}://${host}`)
+import { RemixAdapter } from './index'
+
+function createRemixRequest(event: APIGatewayProxyEvent): NodeRequest {
+  const host = event.headers['x-forwarded-host'] || event.headers.Host
+  const scheme = event.headers['x-forwarded-proto'] || 'http'
+
+  const rawQueryString = new URLSearchParams(event.queryStringParameters as Record<string, string>).toString()
+  const search = rawQueryString.length > 0 ? `?${rawQueryString}` : ''
+  const url = new URL(event.path + search, `${scheme}://${host}`)
+
   const isFormData = event.headers['content-type']?.includes(
     'multipart/form-data'
   )
 
   return new NodeRequest(url.href, {
-    method: event.requestContext.http.method,
-    headers: createRemixHeaders(event.headers, event.cookies),
+    method: event.requestContext.httpMethod,
+    headers: createRemixHeaders(event.headers),
     body:
       event.body && event.isBase64Encoded
         ? isFormData
           ? Buffer.from(event.body, 'base64')
           : Buffer.from(event.body, 'base64').toString()
-        : event.body,
+        : event.body || undefined,
   })
 }
 
-export function createRemixHeaders(
-  requestHeaders: APIGatewayProxyEventHeaders,
-  requestCookies?: string[]
+function createRemixHeaders(
+  requestHeaders: APIGatewayProxyEventHeaders
 ): NodeHeaders {
   const headers = new NodeHeaders()
 
@@ -48,31 +53,12 @@ export function createRemixHeaders(
     }
   }
 
-  if (requestCookies) {
-    headers.append('Cookie', requestCookies.join('; '))
-  }
-
   return headers
 }
 
-export async function sendRemixResponse(
+async function sendRemixResponse(
   nodeResponse: NodeResponse
-): Promise<APIGatewayProxyStructuredResultV2> {
-  const cookies: string[] = []
-
-  // AWS API Gateway will send back set-cookies outside of response headers.
-  for (const [key, values] of Object.entries(nodeResponse.headers.raw())) {
-    if (key.toLowerCase() === 'set-cookie') {
-      for (const value of values) {
-        cookies.push(value)
-      }
-    }
-  }
-
-  if (cookies.length) {
-    nodeResponse.headers.delete('Set-Cookie')
-  }
-
+): Promise<APIGatewayProxyResult> {
   const contentType = nodeResponse.headers.get('Content-Type')
   const isBase64Encoded = isBinaryType(contentType)
   let body: string | undefined
@@ -88,8 +74,25 @@ export async function sendRemixResponse(
   return {
     statusCode: nodeResponse.status,
     headers: Object.fromEntries(nodeResponse.headers.entries()),
-    cookies,
-    body,
+    body: body || '',
     isBase64Encoded,
   }
+}
+
+type ApiGatewayV1Adapter = RemixAdapter<APIGatewayProxyEvent, APIGatewayProxyResult>
+
+const apiGatewayV1Adapter: ApiGatewayV1Adapter = {
+  createRemixRequest,
+  sendRemixResponse
+}
+
+export {
+  createRemixRequest,
+  createRemixHeaders,
+  sendRemixResponse,
+  apiGatewayV1Adapter
+}
+
+export type {
+  ApiGatewayV1Adapter
 }
