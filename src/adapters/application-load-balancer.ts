@@ -1,10 +1,7 @@
 import type {
   ALBEvent,
   ALBEventHeaders,
-  ALBResult,
-  APIGatewayProxyEvent,
-  APIGatewayProxyEventHeaders,
-  APIGatewayProxyResult
+  ALBResult
 } from 'aws-lambda'
 import type {
   Response as NodeResponse,
@@ -19,21 +16,24 @@ import { URLSearchParams } from 'url'
 
 import { isBinaryType } from '../binaryTypes'
 
-export function createRemixRequest(event: APIGatewayProxyEvent & ALBEvent): NodeRequest {
-  const host = event.headers['x-forwarded-host'] || event.headers.Host
-  const scheme = process.env.ARC_SANDBOX ? 'http' : 'https'
+import { RemixAdapter } from './index'
+
+function createRemixRequest(event: ALBEvent): NodeRequest {
+  const headers = event?.headers || {}
+  const host = headers['x-forwarded-host'] || headers.Host
+  const scheme = headers['x-forwarded-proto'] || 'http'
 
   const rawQueryString = new URLSearchParams(event.queryStringParameters as Record<string, string>).toString()
   const search = rawQueryString.length > 0 ? `?${rawQueryString}` : ''
   const url = new URL(event.path + search, `${scheme}://${host}`)
 
-  const isFormData = event.headers['content-type']?.includes(
+  const isFormData = headers['content-type']?.includes(
     'multipart/form-data'
   )
 
   return new NodeRequest(url.href, {
-    method: event.requestContext.httpMethod,
-    headers: createRemixHeaders(event.headers),
+    method: event.httpMethod,
+    headers: createRemixHeaders(headers),
     body:
       event.body && event.isBase64Encoded
         ? isFormData
@@ -43,8 +43,8 @@ export function createRemixRequest(event: APIGatewayProxyEvent & ALBEvent): Node
   })
 }
 
-export function createRemixHeaders(
-  requestHeaders: APIGatewayProxyEventHeaders & ALBEventHeaders
+function createRemixHeaders(
+  requestHeaders: ALBEventHeaders
 ): NodeHeaders {
   const headers = new NodeHeaders()
 
@@ -57,9 +57,9 @@ export function createRemixHeaders(
   return headers
 }
 
-export async function sendRemixResponse(
+async function sendRemixResponse(
   nodeResponse: NodeResponse
-): Promise<APIGatewayProxyResult & ALBResult> {
+): Promise<ALBResult> {
   const contentType = nodeResponse.headers.get('Content-Type')
   const isBase64Encoded = isBinaryType(contentType)
   let body: string | undefined
@@ -78,4 +78,22 @@ export async function sendRemixResponse(
     body: body || '',
     isBase64Encoded,
   }
+}
+
+type ApplicationLoadBalancerAdapter = RemixAdapter<ALBEvent, ALBResult>
+
+const applicationLoadBalancerAdapter: ApplicationLoadBalancerAdapter = {
+  createRemixRequest,
+  sendRemixResponse
+}
+
+export {
+  createRemixRequest,
+  createRemixHeaders,
+  sendRemixResponse,
+  applicationLoadBalancerAdapter
+}
+
+export type {
+  ApplicationLoadBalancerAdapter
 }
