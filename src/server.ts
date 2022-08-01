@@ -16,13 +16,7 @@ import {
   createRequestHandler as createRemixRequestHandler
 } from '@remix-run/node'
 
-import {
-  createRemixRequest,
-  sendRemixResponse
-} from './api/v1'
-import {
-  createRemixRequest as createRemixRequestV2,
-  sendRemixResponse as sendRemixResponseV2 } from './api/v2'
+import { createRemixAdapter } from './adapters'
 
 export enum AWSProxy {
   APIGatewayV1 = 'APIGatewayV1',
@@ -60,16 +54,13 @@ export function createRequestHandler({
 }): RequestHandler {
   const handleRequest = createRemixRequestHandler(build, mode)
 
-  return async (event: APIGatewayProxyEvent | APIGatewayProxyEventV2 /*, context*/) => {
-    const request = awsProxy === AWSProxy.APIGatewayV2
-      ? createRemixRequestV2(event as APIGatewayProxyEventV2)
-      : createRemixRequest(event as APIGatewayProxyEvent & ALBEvent)
+  return async (event: APIGatewayProxyEvent | APIGatewayProxyEventV2 | ALBEvent /*, context*/) => {
+    const awsAdapter = createRemixAdapter(awsProxy)
+    const request = awsAdapter.createRemixRequest(event as APIGatewayProxyEvent & APIGatewayProxyEventV2 & ALBEvent)
     const loadContext = getLoadContext?.(event)
 
     const response = (await handleRequest(request, loadContext)) as NodeResponse
 
-    return awsProxy === AWSProxy.APIGatewayV2
-      ? sendRemixResponseV2(response)
-      : sendRemixResponse(response)
+    return awsAdapter.sendRemixResponse(response)
   }
 }
