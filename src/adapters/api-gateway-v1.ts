@@ -15,8 +15,7 @@ import {
 import { URLSearchParams } from 'url'
 
 import { isBinaryType } from '../binaryTypes'
-
-import { RemixAdapter } from './index'
+import { RemixAdapter } from '../server'
 
 function createRemixRequest(event: APIGatewayProxyEvent): NodeRequest {
   const host = event.headers['x-forwarded-host'] || event.headers.Host
@@ -79,20 +78,9 @@ async function sendRemixResponse(
   }
 }
 
-type ApiGatewayV1Adapter = RemixAdapter<APIGatewayProxyEvent, APIGatewayProxyResult>
+export type ApiGatewayV1Adapter = RemixAdapter<APIGatewayProxyEvent, APIGatewayProxyResult>
 
-const apiGatewayV1Adapter: ApiGatewayV1Adapter = {
+export const apiGatewayV1Adapter: ApiGatewayV1Adapter = {
   createRemixRequest,
   sendRemixResponse
-}
-
-export {
-  createRemixRequest,
-  createRemixHeaders,
-  sendRemixResponse,
-  apiGatewayV1Adapter
-}
-
-export type {
-  ApiGatewayV1Adapter
 }

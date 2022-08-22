@@ -14,8 +14,7 @@ import {
 } from '@remix-run/node'
 
 import { isBinaryType } from '../binaryTypes'
-
-import { RemixAdapter } from './index'
+import { RemixAdapter } from '../server'
 
 function createRemixRequest(event: APIGatewayProxyEventV2): NodeRequest {
   const host = event.headers['x-forwarded-host'] || event.headers.host
@@ -97,20 +96,9 @@ async function sendRemixResponse(
   }
 }
 
-type ApiGatewayV2Adapter = RemixAdapter<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2>
+export type ApiGatewayV2Adapter = RemixAdapter<APIGatewayProxyEventV2, APIGatewayProxyStructuredResultV2>
 
-const apiGatewayV2Adapter: ApiGatewayV2Adapter = {
+export const apiGatewayV2Adapter: ApiGatewayV2Adapter = {
   createRemixRequest,
   sendRemixResponse
-}
-
-export {
-  createRemixRequest,
-  createRemixHeaders,
-  sendRemixResponse,
-  apiGatewayV2Adapter
-}
-
-export type {
-  ApiGatewayV2Adapter
 }

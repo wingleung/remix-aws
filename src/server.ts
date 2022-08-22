@@ -1,13 +1,7 @@
-import type {
-  ALBEvent,
-  ALBHandler,
-  APIGatewayProxyEvent,
-  APIGatewayProxyEventV2,
-  APIGatewayProxyHandler,
-  APIGatewayProxyHandlerV2
-} from 'aws-lambda'
+import type { Handler } from 'aws-lambda'
 import type {
   AppLoadContext,
+  Request as NodeRequest,
   Response as NodeResponse,
   ServerBuild,
 } from '@remix-run/node'
@@ -16,14 +10,10 @@ import {
   createRequestHandler as createRemixRequestHandler
 } from '@remix-run/node'
 
-import { createRemixAdapter } from './adapters'
-
-export enum AWSProxy {
-  APIGatewayV1 = 'APIGatewayV1',
-  APIGatewayV2 = 'APIGatewayV2',
-  ALB = 'ALB'
+export interface RemixAdapter<T, U> {
+  createRemixRequest: (event: T) => NodeRequest
+  sendRemixResponse: (nodeResponse: NodeResponse) => Promise<U>
 }
-
 /**
  * A function that returns the value to use as `context` in route `loader` and
  * `action` functions.
@@ -31,36 +21,33 @@ export enum AWSProxy {
  * You can think of this as an escape hatch that allows you to pass
  * environment/platform-specific values through to your loader/action.
  */
-export type GetLoadContextFunction = (
-  event: APIGatewayProxyEventV2 | APIGatewayProxyEvent | ALBEvent
+export type GetLoadContextFunction = <T>(
+  event: T
 ) => AppLoadContext;
-
-export type RequestHandler = APIGatewayProxyHandlerV2 | APIGatewayProxyHandler | ALBHandler;
 
 /**
  * Returns a request handler for Architect that serves the response using
  * Remix.
  */
-export function createRequestHandler({
+export function createRequestHandler<T, U>({
   build,
   getLoadContext,
   mode = process.env.NODE_ENV,
-  awsProxy = AWSProxy.APIGatewayV2
+  adapter,
 }: {
   build: ServerBuild;
   getLoadContext?: GetLoadContextFunction;
   mode?: string;
-  awsProxy?: AWSProxy;
-}): RequestHandler {
+  adapter: RemixAdapter<T, U>, 
+}): Handler<T, U> {
   const handleRequest = createRemixRequestHandler(build, mode)
 
-  return async (event: APIGatewayProxyEvent | APIGatewayProxyEventV2 | ALBEvent /*, context*/) => {
-    const awsAdapter = createRemixAdapter(awsProxy)
-    const request = awsAdapter.createRemixRequest(event as APIGatewayProxyEvent & APIGatewayProxyEventV2 & ALBEvent)
+  return async (event: T /*, context*/): Promise<U> => {
+    const request = adapter.createRemixRequest(event)
     const loadContext = getLoadContext?.(event)
 
     const response = (await handleRequest(request, loadContext)) as NodeResponse
 
-    return awsAdapter.sendRemixResponse(response)
+    return adapter.sendRemixResponse(response)
   }
 }
