@@ -15,8 +15,7 @@ import {
 import { URLSearchParams } from 'url'
 
 import { isBinaryType } from '../binaryTypes'
-
-import { RemixAdapter } from './index'
+import { RemixAdapter } from '../server'
 
 function createRemixRequest(event: ALBEvent): NodeRequest {
   const headers = event?.headers || {}
@@ -80,20 +79,9 @@ async function sendRemixResponse(
   }
 }
 
-type ApplicationLoadBalancerAdapter = RemixAdapter<ALBEvent, ALBResult>
+export type ApplicationLoadBalancerAdapter = RemixAdapter<ALBEvent, ALBResult>
 
-const applicationLoadBalancerAdapter: ApplicationLoadBalancerAdapter = {
+export const applicationLoadBalancerAdapter: ApplicationLoadBalancerAdapter = {
   createRemixRequest,
   sendRemixResponse
-}
-
-export {
-  createRemixRequest,
-  createRemixHeaders,
-  sendRemixResponse,
-  applicationLoadBalancerAdapter
-}
-
-export type {
-  ApplicationLoadBalancerAdapter
 }
