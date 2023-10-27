@@ -3,21 +3,14 @@ import type {
   APIGatewayProxyEventV2,
   APIGatewayProxyStructuredResultV2
 } from 'aws-lambda'
-import type {
-  Response as NodeResponse,
-} from '@remix-run/node'
 
-import {
-  Headers as NodeHeaders,
-  readableStreamToString,
-  Request as NodeRequest
-} from '@remix-run/node'
+import { readableStreamToString } from '@remix-run/node'
 
 import { isBinaryType } from '../binaryTypes'
 
 import { RemixAdapter } from './index'
 
-function createRemixRequest(event: APIGatewayProxyEventV2): NodeRequest {
+function createRemixRequest(event: APIGatewayProxyEventV2): Request {
   const host = event.headers['x-forwarded-host'] || event.headers.host
   const search = event.rawQueryString.length ? `?${event.rawQueryString}` : ''
   const scheme = event.headers['x-forwarded-proto'] || 'http'
@@ -27,7 +20,7 @@ function createRemixRequest(event: APIGatewayProxyEventV2): NodeRequest {
     'multipart/form-data'
   )
 
-  return new NodeRequest(url.href, {
+  return new Request(url.href, {
     method: event.requestContext.http.method,
     headers: createRemixHeaders(event.headers, event.cookies),
     body:
@@ -42,8 +35,8 @@ function createRemixRequest(event: APIGatewayProxyEventV2): NodeRequest {
 function createRemixHeaders(
   requestHeaders: APIGatewayProxyEventHeaders,
   requestCookies?: string[]
-): NodeHeaders {
-  const headers = new NodeHeaders()
+): Headers {
+  const headers = new Headers()
 
   for (const [header, value] of Object.entries(requestHeaders)) {
     if (value) {
@@ -59,7 +52,7 @@ function createRemixHeaders(
 }
 
 async function sendRemixResponse(
-  nodeResponse: NodeResponse
+  nodeResponse: Response
 ): Promise<APIGatewayProxyStructuredResultV2> {
   const cookies: string[] = []
 

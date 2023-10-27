@@ -3,22 +3,15 @@ import type {
   APIGatewayProxyEventHeaders,
   APIGatewayProxyResult
 } from 'aws-lambda'
-import type {
-  Response as NodeResponse,
-} from '@remix-run/node'
 
-import {
-  Headers as NodeHeaders,
-  readableStreamToString,
-  Request as NodeRequest
-} from '@remix-run/node'
+import { readableStreamToString } from '@remix-run/node'
 import { URLSearchParams } from 'url'
 
 import { isBinaryType } from '../binaryTypes'
 
 import { RemixAdapter } from './index'
 
-function createRemixRequest(event: APIGatewayProxyEvent): NodeRequest {
+function createRemixRequest(event: APIGatewayProxyEvent): Request {
   const host = event.headers['x-forwarded-host'] || event.headers.Host
   const scheme = event.headers['x-forwarded-proto'] || 'http'
 
@@ -30,7 +23,7 @@ function createRemixRequest(event: APIGatewayProxyEvent): NodeRequest {
     'multipart/form-data'
   )
 
-  return new NodeRequest(url.href, {
+  return new Request(url.href, {
     method: event.requestContext.httpMethod,
     headers: createRemixHeaders(event.headers),
     body:
@@ -44,8 +37,8 @@ function createRemixRequest(event: APIGatewayProxyEvent): NodeRequest {
 
 function createRemixHeaders(
   requestHeaders: APIGatewayProxyEventHeaders
-): NodeHeaders {
-  const headers = new NodeHeaders()
+): Headers {
+  const headers = new Headers()
 
   for (const [header, value] of Object.entries(requestHeaders)) {
     if (value) {
@@ -57,7 +50,7 @@ function createRemixHeaders(
 }
 
 async function sendRemixResponse(
-  nodeResponse: NodeResponse
+  nodeResponse: Response
 ): Promise<APIGatewayProxyResult> {
   const contentType = nodeResponse.headers.get('Content-Type')
   const isBase64Encoded = isBinaryType(contentType)

@@ -8,7 +8,6 @@ import type {
 } from 'aws-lambda'
 import type {
   AppLoadContext,
-  Response as NodeResponse,
   ServerBuild,
 } from '@remix-run/node'
 
@@ -59,7 +58,7 @@ export function createRequestHandler({
     const request = awsAdapter.createRemixRequest(event as APIGatewayProxyEvent & APIGatewayProxyEventV2 & ALBEvent)
     const loadContext = getLoadContext?.(event)
 
-    const response = (await handleRequest(request, loadContext)) as NodeResponse
+    const response = (await handleRequest(request, loadContext)) as Response
 
     return awsAdapter.sendRemixResponse(response)
   }

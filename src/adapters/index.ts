@@ -9,10 +9,6 @@ import type {
 import type { ApiGatewayV1Adapter } from './api-gateway-v1'
 import type { ApiGatewayV2Adapter } from './api-gateway-v2'
 import type { ApplicationLoadBalancerAdapter } from './application-load-balancer'
-import type {
-  Request as NodeRequest,
-  Response as NodeResponse,
-} from '@remix-run/node'
 
 import { AWSProxy } from '../server'
 
@@ -21,8 +17,8 @@ import { apiGatewayV2Adapter } from './api-gateway-v2'
 import { applicationLoadBalancerAdapter } from './application-load-balancer'
 
 interface RemixAdapter<T, U> {
-  createRemixRequest: (event: T) => NodeRequest
-  sendRemixResponse: (nodeResponse: NodeResponse) => Promise<U>
+  createRemixRequest: (event: T) => Request
+  sendRemixResponse: (nodeResponse: Response) => Promise<U>
 }
 
 const createRemixAdapter = (awsProxy: AWSProxy): ApiGatewayV1Adapter | ApiGatewayV2Adapter | ApplicationLoadBalancerAdapter => {
