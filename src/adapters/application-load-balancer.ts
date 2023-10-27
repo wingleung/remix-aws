@@ -3,22 +3,15 @@ import type {
   ALBEventHeaders,
   ALBResult
 } from 'aws-lambda'
-import type {
-  Response as NodeResponse,
-} from '@remix-run/node'
 
-import {
-  Headers as NodeHeaders,
-  readableStreamToString,
-  Request as NodeRequest
-} from '@remix-run/node'
+import { readableStreamToString } from '@remix-run/node'
 import { URLSearchParams } from 'url'
 
 import { isBinaryType } from '../binaryTypes'
 
 import { RemixAdapter } from './index'
 
-function createRemixRequest(event: ALBEvent): NodeRequest {
+function createRemixRequest(event: ALBEvent): Request {
   const headers = event?.headers || {}
   const host = headers['x-forwarded-host'] || headers.Host
   const scheme = headers['x-forwarded-proto'] || 'http'
@@ -31,7 +24,7 @@ function createRemixRequest(event: ALBEvent): NodeRequest {
     'multipart/form-data'
   )
 
-  return new NodeRequest(url.href, {
+  return new Request(url.href, {
     method: event.httpMethod,
     headers: createRemixHeaders(headers),
     body:
@@ -45,8 +38,8 @@ function createRemixRequest(event: ALBEvent): NodeRequest {
 
 function createRemixHeaders(
   requestHeaders: ALBEventHeaders
-): NodeHeaders {
-  const headers = new NodeHeaders()
+): Headers {
+  const headers = new Headers()
 
   for (const [header, value] of Object.entries(requestHeaders)) {
     if (value) {
@@ -58,7 +51,7 @@ function createRemixHeaders(
 }
 
 async function sendRemixResponse(
-  nodeResponse: NodeResponse
+  nodeResponse: Response
 ): Promise<ALBResult> {
   const contentType = nodeResponse.headers.get('Content-Type')
   const isBase64Encoded = isBinaryType(contentType)
