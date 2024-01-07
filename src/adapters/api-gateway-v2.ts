@@ -45,7 +45,7 @@ function createRemixHeaders(
   }
 
   if (requestCookies) {
-    headers.append('Cookie', requestCookies.join('; '))
+    headers.set('Cookie', requestCookies.join('; '))
   }
 
   return headers
