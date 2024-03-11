@@ -52,6 +52,7 @@ By default the `awsProxy` is set to `AWSProxy.APIGatewayV2`.
 - `AWSProxy.APIGatewayV1`
 - `AWSProxy.APIGatewayV2`
 - `AWSProxy.ALB`
+- `AWSProxy.FunctionURL`
 
 ## Notes
 
