@@ -12,7 +12,8 @@ import { RemixAdapter } from './index'
 
 function createRemixRequest(event: APIGatewayProxyEventV2): Request {
   const host = event.headers['x-forwarded-host'] || event.headers.host
-  const search = event.rawQueryString.length ? `?${event.rawQueryString}` : ''
+  const rawQueryString = new URLSearchParams(event.queryStringParameters as Record<string, string>).toString()
+  const search = rawQueryString.length > 0 ? `?${rawQueryString}` : ''
   const scheme = event.headers['x-forwarded-proto'] || 'http'
 
   const url = new URL(event.rawPath + search, `${scheme}://${host}`)
