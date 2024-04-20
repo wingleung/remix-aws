@@ -10,5 +10,8 @@ export default defineConfig({
   ],
   dts: true,
   sourcemap: true,
-  clean: true
+  clean: true,
+  external: [
+    'esbuild'
+  ]
 })
