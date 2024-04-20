@@ -20,7 +20,8 @@ import { createRemixAdapter } from './adapters'
 export enum AWSProxy {
   APIGatewayV1 = 'APIGatewayV1',
   APIGatewayV2 = 'APIGatewayV2',
-  ALB = 'ALB'
+  ALB = 'ALB',
+  LambdaUrl = 'LambdaUrl'
 }
 
 /**

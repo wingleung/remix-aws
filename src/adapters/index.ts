@@ -26,6 +26,7 @@ const createRemixAdapter = (awsProxy: AWSProxy): ApiGatewayV1Adapter | ApiGatewa
     case AWSProxy.APIGatewayV1:
       return apiGatewayV1Adapter
     case AWSProxy.APIGatewayV2:
+    case AWSProxy.LambdaUrl:
       return apiGatewayV2Adapter
     case AWSProxy.ALB:
       return applicationLoadBalancerAdapter
