@@ -3,8 +3,9 @@
   "display": "Default",
   "compilerOptions": {
     "lib": [
-      "ES2022",
-      "DOM.Iterable"
+      "DOM",
+      "DOM.Iterable",
+      "ES2022"
     ],
     "module": "commonjs",
     "target": "ES2022",
