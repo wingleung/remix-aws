@@ -54,16 +54,8 @@ function createRemixHeaders(
 async function sendRemixResponse(
   nodeResponse: Response
 ): Promise<APIGatewayProxyStructuredResultV2> {
-  const cookies: string[] = []
-
   // AWS API Gateway will send back set-cookies outside of response headers.
-  for (const [key, values] of Object.entries(nodeResponse.headers.raw())) {
-    if (key.toLowerCase() === 'set-cookie') {
-      for (const value of values) {
-        cookies.push(value)
-      }
-    }
-  }
+  const cookies = nodeResponse.headers.getSetCookie()
 
   if (cookies.length) {
     nodeResponse.headers.delete('Set-Cookie')
