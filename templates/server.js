@@ -1,8 +1,10 @@
-import * as build from '@remix-run/dev/server-build'
 import { installGlobals } from '@remix-run/node'
-// Required in Remix v2
 import { AWSProxy, createRequestHandler } from 'remix-aws'
+
+// Required in Remix v2
 installGlobals()
+
+let build = require('./build/server/index.js')
 
 export const handler = createRequestHandler({
   build,

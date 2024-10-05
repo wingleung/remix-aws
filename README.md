@@ -93,6 +93,21 @@ export default defineConfig(
 )
 ```
 
+**Example [server.js](./templates/server.js)**
+
+```typescript
+import { AWSProxy, createRequestHandler } from 'remix-aws'
+
+let build = require('./build/server/index.js')
+
+export const handler = createRequestHandler({
+  build,
+  mode: process.env.NODE_ENV,
+  awsProxy: AWSProxy.APIGatewayV1
+})
+```
+
+
 ### configuration
 
 #### `awsProxy` is optional and defaults to `AWSProxy.APIGatewayV2`

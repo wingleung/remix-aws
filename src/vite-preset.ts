@@ -49,10 +49,15 @@ const copyDefaultServerHandler = (remixUserConfig: ResolvedVitePluginConfig, con
   if (config.awsProxy) {
     let serverFileWithConfig = readFileSync(destinationServerFile, 'utf-8')
 
-    serverFileWithConfig = serverFileWithConfig.replace(
-      /awsProxy: .+/,
-      `awsProxy: '${config.awsProxy}'`
-    )
+    serverFileWithConfig = serverFileWithConfig
+      .replace(
+        /awsProxy: .+/,
+        `awsProxy: '${config.awsProxy}'`
+      )
+      .replace(
+        './build/server/index.js',
+        remixUserConfig.buildDirectory + '/server/' + remixUserConfig.serverBuildFile
+      )
 
     writeFileSync(destinationServerFile, serverFileWithConfig, 'utf8')
   }
@@ -97,11 +102,13 @@ const buildEndHandler: (config: AwsRemixConfig) => VitePluginConfig['buildEnd'] 
 
         process.exit(1)
       } finally {
-        console.log('🧹 Cleaning up...')
+        if (!config?.build?.entryPoints) {
+          console.log('🧹 Cleaning up...')
 
-        cleanupHandler(remixConfig)
+          cleanupHandler(remixConfig)
 
-        console.log('🧹 Cleaned up!')
+          console.log('🧹 Clean up completed!')
+        }
       }
     }
 
