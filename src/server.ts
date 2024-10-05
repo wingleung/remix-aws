@@ -45,12 +45,14 @@ export function createRequestHandler({
   build,
   getLoadContext,
   mode = process.env.NODE_ENV,
-  awsProxy = AWSProxy.APIGatewayV2
+  awsProxy = AWSProxy.APIGatewayV2,
+  responseHook,
 }: {
   build: ServerBuild;
   getLoadContext?: GetLoadContextFunction;
   mode?: string;
   awsProxy?: AWSProxy;
+  responseHook?: (response: Response) => Promise<Response>
 }): RequestHandler {
   const handleRequest = createRemixRequestHandler(build, mode)
 
@@ -60,6 +62,12 @@ export function createRequestHandler({
     const loadContext = getLoadContext?.(event)
 
     const response = (await handleRequest(request, loadContext)) as Response
+
+    if (responseHook) {
+      const modifiedResponse = await responseHook(response)
+
+      return awsAdapter.sendRemixResponse(modifiedResponse)
+    }
 
     return awsAdapter.sendRemixResponse(response)
   }
