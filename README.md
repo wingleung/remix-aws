@@ -39,7 +39,13 @@ installGlobals()
 export const handler = createRequestHandler({
     build,
     mode: process.env.NODE_ENV,
-    awsProxy: AWSProxy.APIGatewayV1
+    awsProxy: AWSProxy.APIGatewayV1,
+    responseHook: async (response: Response) => {
+
+        // do some transformations before sending the response
+
+        return response
+    }
 })
 ```
 
@@ -53,6 +59,10 @@ By default the `awsProxy` is set to `AWSProxy.APIGatewayV2`.
 - `AWSProxy.APIGatewayV2`
 - `AWSProxy.ALB`
 - `AWSProxy.FunctionURL`
+
+### `responseHook`
+
+This hook allows you to do transformations on the response before sending it to the client.
 
 ## Notes
 
