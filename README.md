@@ -39,7 +39,7 @@ installGlobals()
 export const handler = createRequestHandler({
     build,
     mode: process.env.NODE_ENV,
-    awsProxy: AWSProxy.APIGatewayV1
+    awsProxy: AWSProxy.APIGatewayV2
 })
 ```
 
@@ -77,8 +77,7 @@ export default defineConfig(
             remix({
                 presets: [
                     awsPreset({
-                        // or AWSProxy.APIGatewayV2 or AWSProxy.ALB
-                        awsProxy: AWSProxy.APIGatewayV1,
+                        awsProxy: AWSProxy.APIGatewayV2,
                         
                         // additional esbuild configuration
                         build: {
