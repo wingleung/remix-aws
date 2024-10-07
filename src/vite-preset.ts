@@ -83,6 +83,7 @@ const buildEndHandler: (config: AwsRemixConfig) => VitePluginConfig['buildEnd'] 
         ...config,
         build: {
           ...defaultConfig.build,
+          outfile: remixConfig.buildDirectory + '/server/' + remixConfig.serverBuildFile,
           ...config.build
         } as BuildOptions
       }
