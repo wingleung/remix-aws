@@ -37,7 +37,10 @@ const defaultConfig: AwsRemixConfig = {
   }
 }
 
-const copyDefaultServerHandler = (remixUserConfig: ResolvedVitePluginConfig, config: AwsRemixConfig) => {
+const copyDefaultServerHandler = (
+  remixUserConfig: ResolvedVitePluginConfig,
+  config: AwsRemixConfig
+) => {
   const buildDirectory = remixUserConfig.buildDirectory ?? 'build'
   const templateServerFile = join(__dirname, 'server.js')
   const destinationServerFile = join(buildDirectory, 'server.js')
@@ -73,7 +76,8 @@ const buildEndHandler: (config: AwsRemixConfig) => VitePluginConfig['buildEnd'] 
   (config) =>
     async (
       {
-        remixConfig
+        remixConfig,
+        viteConfig
       }
     ) => {
       console.log('👷 Building for AWS...')
@@ -83,7 +87,20 @@ const buildEndHandler: (config: AwsRemixConfig) => VitePluginConfig['buildEnd'] 
         ...config,
         build: {
           ...defaultConfig.build,
+          format: remixConfig.serverModuleFormat,
           outfile: remixConfig.buildDirectory + '/server/' + remixConfig.serverBuildFile,
+          publicPath: viteConfig.base,
+          minify: Boolean(viteConfig.build.minify),
+          sourcemap: viteConfig.build.sourcemap,
+          target: viteConfig.build.target,
+
+          // workaround dynamic require bug
+          // https://github.com/evanw/esbuild/issues/1921#issuecomment-2302290651
+          mainFields: ['module', 'main'],
+          banner: {
+            js: 'import { createRequire } from \'module\'; const require = createRequire(import.meta.url);',
+          },
+
           ...config.build
         } as BuildOptions
       }
