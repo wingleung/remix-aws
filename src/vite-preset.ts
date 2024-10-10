@@ -82,6 +82,8 @@ const buildEndHandler: (config: AwsRemixConfig) => VitePluginConfig['buildEnd'] 
     ) => {
       console.log('👷 Building for AWS...')
 
+      const isEsm = [remixConfig.serverModuleFormat, config.build?.format].includes('esm')
+
       const mergedConfig = {
         ...defaultConfig,
         ...config,
@@ -96,10 +98,14 @@ const buildEndHandler: (config: AwsRemixConfig) => VitePluginConfig['buildEnd'] 
 
           // workaround dynamic require bug
           // https://github.com/evanw/esbuild/issues/1921#issuecomment-2302290651
-          mainFields: ['module', 'main'],
-          banner: {
-            js: 'import { createRequire } from \'module\'; const require = createRequire(import.meta.url);',
-          },
+          mainFields: isEsm
+            ? ['module', 'main']
+            : undefined,
+          banner: isEsm
+            ? {
+              js: 'import { createRequire } from \'module\'; const require = createRequire(import.meta.url);',
+            }
+            : undefined,
 
           ...config.build
         } as BuildOptions

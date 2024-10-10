@@ -62,6 +62,20 @@ It will do a post remix build and create a handler function for use in aws lambd
 There is no need for a separate `server.js` file. The preset will take care of that.
 However, if you want to manage your own `server.js` file, you can pas a custom `entryPoint` to your own `server.js`.
 
+⚠️ By default Remix will set `serverModuleFormat` to `esm`.
+The Vite preset will automatically align the `serverModuleFormat` with the esbuild configuration used by the preset.
+However, to ensure that AWS lambda correctly interprets the output file as an ES module, you need to take additional steps.
+
+There are two primary methods to achieve this:
+
+- Specify the module type in package.json:
+  Add `"type": "module"` to your package.json file and ensure that this file is included in the deployment package sent to AWS Lambda.
+
+- Use the .mjs extension:
+  Alternatively, you can change the file extension to `.mjs`. For example, you can configure the Remix `serverBuildFile` setting to output `index.mjs`.
+
+more info: [AWS docs on ES module support in AWS lambdas](https://docs.aws.amazon.com/lambda/latest/dg/lambda-nodejs.html#designate-es-module)
+
 ```typescript
 import type { PluginOption } from 'vite'
 import type { Preset } from '@remix-run/dev'
@@ -71,25 +85,26 @@ import { awsPreset, AWSProxy } from 'remix-aws'
 import { defineConfig } from 'vite'
 
 export default defineConfig(
-    {
-        ...
-        plugins: [
-            remix({
-                presets: [
-                    awsPreset({
-                        awsProxy: AWSProxy.APIGatewayV2,
-                        
-                        // additional esbuild configuration
-                        build: {
-                          minify: true,
-                          treeShaking: true,
-                          ...
-                        }
-                    }) as Preset
-                ]
-            }) as PluginOption,
-        ]
-    }
+  {
+    ...
+      plugins: [
+  remix({
+    // serverBuildFile: 'index.mjs', // set the extension to .mjs or ship you package.json along with the build package
+    presets: [
+      awsPreset({
+        awsProxy: AWSProxy.APIGatewayV2,
+
+        // additional esbuild configuration
+        build: {
+          minify: true,
+          treeShaking: true,
+          ...
+        }
+      }) as Preset
+    ]
+  }) as PluginOption,
+]
+}
 )
 ```
 
