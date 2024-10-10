@@ -56,7 +56,17 @@ export function createRequestHandler({
 
   return async (event: APIGatewayProxyEvent | APIGatewayProxyEventV2 | ALBEvent /*, context*/) => {
     const awsAdapter = createRemixAdapter(awsProxy)
-    const request = awsAdapter.createRemixRequest(event as APIGatewayProxyEvent & APIGatewayProxyEventV2 & ALBEvent)
+
+    let request
+
+    try {
+      request = awsAdapter.createRemixRequest(event as APIGatewayProxyEvent & APIGatewayProxyEventV2 & ALBEvent)
+    } catch (e: any) {
+      return awsAdapter.sendRemixResponse(
+        new Response(`Bad Request: ${e.message}`, { status: 400 }),
+      )
+    }
+
     const loadContext = getLoadContext?.(event)
 
     const response = (await handleRequest(request, loadContext)) as Response
