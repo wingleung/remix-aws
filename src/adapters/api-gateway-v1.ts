@@ -3,13 +3,12 @@ import type {
   APIGatewayProxyEventHeaders,
   APIGatewayProxyResult
 } from 'aws-lambda'
+import type { RemixAdapter } from './index'
 
 import { readableStreamToString } from '@remix-run/node'
 import { URLSearchParams } from 'url'
 
 import { isBinaryType } from '../binaryTypes'
-
-import { RemixAdapter } from './index'
 
 function createRemixRequest(event: APIGatewayProxyEvent): Request {
   const host = event.headers['x-forwarded-host'] || event.headers.Host
@@ -64,9 +63,21 @@ async function sendRemixResponse(
     }
   }
 
+  const headers: Record<string, string> = {}
+  const multiValueHeaders: Record<string, string[]> = {}
+
+  nodeResponse.headers.forEach((value, key) => {
+    if (Array.isArray(value)) {
+      multiValueHeaders[key] = value
+    } else {
+      headers[key] = value
+    }
+  })
+
   return {
     statusCode: nodeResponse.status,
-    headers: Object.fromEntries(nodeResponse.headers.entries()),
+    headers: Object.keys(headers).length === 0 ? undefined : headers,
+    multiValueHeaders: Object.keys(multiValueHeaders).length === 0 ? undefined : multiValueHeaders,
     body: body || '',
     isBase64Encoded,
   }
