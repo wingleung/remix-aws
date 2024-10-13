@@ -28,7 +28,7 @@ function createRemixRequest(event: APIGatewayProxyEventV2): Request {
         ? isFormData
           ? Buffer.from(event.body, 'base64')
           : Buffer.from(event.body, 'base64').toString()
-        : event.body,
+        : event.body || undefined,
   })
 }
 
